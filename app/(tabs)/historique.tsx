@@ -2,10 +2,10 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 
-export default function HumeurScreen() {
+export default function HistoriqueScreen() {
   return (
     <View style={styles.container}>
-      <ThemedText type="title">Mon humeur du jour</ThemedText>
+      <ThemedText type="title">Historique</ThemedText>
     </View>
   );
 }
