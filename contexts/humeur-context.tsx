@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   createContext,
   ReactNode,
@@ -8,6 +9,8 @@ import {
 } from 'react';
 
 import { API_URL } from '@/constants/api';
+
+const STORAGE_KEY = '@ulteam_humeurs';
 
 export interface Humeur {
   id: string;
@@ -43,8 +46,16 @@ export function HumeurProvider({ children }: { children: ReactNode }) {
       }
       const json: Humeur[] = await response.json();
       setHumeurs(json);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(json));
     } catch (err) {
-      setError(true);
+      // Pas de réseau ou serveur injoignable : on retombe sur la dernière
+      // copie locale sauvegardée, pour que l'historique reste consultable hors ligne.
+      const local = await AsyncStorage.getItem(STORAGE_KEY);
+      if (local) {
+        setHumeurs(JSON.parse(local));
+      } else {
+        setError(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -65,14 +76,16 @@ export function HumeurProvider({ children }: { children: ReactNode }) {
       }
 
       const nouvelleHumeur: Humeur = await response.json();
-      setHumeurs((precedent) => [nouvelleHumeur, ...precedent]);
+      const misAJour = [nouvelleHumeur, ...humeurs];
+      setHumeurs(misAJour);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(misAJour));
       return true;
     } catch (err) {
       return false;
     } finally {
       setEnvoiEnCours(false);
     }
-  }, []);
+  }, [humeurs]);
 
   useEffect(() => {
     chargerHumeurs();
