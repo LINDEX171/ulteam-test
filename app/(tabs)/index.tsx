@@ -1,6 +1,14 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -17,10 +25,29 @@ const dateDuJour = capitaliser(
   new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
 );
 
+const PADDING_CONTENEUR = 24;
+const ESPACEMENT_NIVEAUX = 10;
+const TAILLE_BOUTON_MAX = 58;
+const TAILLE_BOUTON_MIN = 40;
+
 export default function HumeurScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { ajouterHumeur, envoiEnCours } = useHumeurContext();
+  const { width: largeurEcran } = useWindowDimensions();
+
+  // Les 5 niveaux doivent tenir sur une seule ligne même sur un petit écran
+  // (ex. iPhone SE) : on calcule la taille des boutons en fonction de la
+  // largeur disponible plutôt que d'utiliser une taille fixe.
+  const largeurDisponible = largeurEcran - PADDING_CONTENEUR * 2;
+  const tailleBouton = Math.min(
+    TAILLE_BOUTON_MAX,
+    Math.max(
+      TAILLE_BOUTON_MIN,
+      Math.floor((largeurDisponible - ESPACEMENT_NIVEAUX * (NIVEAUX_HUMEUR.length - 1)) / NIVEAUX_HUMEUR.length)
+    )
+  );
+  const tailleEmoji = Math.round(tailleBouton * 0.48);
 
   const [humeur, setHumeur] = useState<number | null>(null);
   const [resultat, setResultat] = useState<'succes' | 'erreur' | null>(null);
@@ -72,11 +99,11 @@ export default function HumeurScreen() {
           <Text style={[styles.sousTitre, { color: colors.muted }]}>{dateDuJour}</Text>
         </View>
 
-        <View style={styles.niveaux}>
+        <View style={[styles.niveaux, { gap: ESPACEMENT_NIVEAUX }]}>
           {NIVEAUX_HUMEUR.map((niveau, index) => {
             const estSelectionne = humeur === niveau.valeur;
             return (
-              <View key={niveau.valeur} style={styles.niveauColonne}>
+              <View key={niveau.valeur} style={[styles.niveauColonne, { width: tailleBouton }]}>
                 <Animated.View style={{ transform: [{ scale: echelles[index] }] }}>
                   <TouchableOpacity
                     accessibilityRole="button"
@@ -84,14 +111,22 @@ export default function HumeurScreen() {
                     accessibilityState={{ selected: estSelectionne }}
                     style={[
                       styles.bouton,
-                      { backgroundColor: colors.card, borderColor: 'transparent' },
+                      {
+                        width: tailleBouton,
+                        height: tailleBouton,
+                        borderRadius: tailleBouton / 2,
+                        backgroundColor: colors.card,
+                        borderColor: 'transparent',
+                      },
                       estSelectionne && {
                         borderColor: niveau.couleur,
                         backgroundColor: niveau.couleur + '33',
                       },
                     ]}
                     onPress={() => handleSelection(index, niveau.valeur)}>
-                    <Text style={styles.emoji}>{niveau.emoji}</Text>
+                    <Text style={{ fontSize: tailleEmoji }} maxFontSizeMultiplier={1.3}>
+                      {niveau.emoji}
+                    </Text>
                   </TouchableOpacity>
                 </Animated.View>
                 <Text
@@ -100,7 +135,8 @@ export default function HumeurScreen() {
                     { color: estSelectionne ? colors.text : colors.muted },
                     estSelectionne && styles.labelNiveauActif,
                   ]}
-                  numberOfLines={1}>
+                  numberOfLines={1}
+                  maxFontSizeMultiplier={1.3}>
                   {niveau.label}
                 </Text>
               </View>
@@ -165,7 +201,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: PADDING_CONTENEUR,
     gap: 32,
   },
   entete: {
@@ -181,23 +217,16 @@ const styles = StyleSheet.create({
   },
   niveaux: {
     flexDirection: 'row',
-    gap: 10,
+    justifyContent: 'center',
   },
   niveauColonne: {
     alignItems: 'center',
     gap: 6,
-    width: 62,
   },
   bouton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: 28,
   },
   labelNiveau: {
     fontSize: 11,
