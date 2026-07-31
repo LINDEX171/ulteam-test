@@ -1,13 +1,7 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { API_URL } from '@/constants/api';
+import { useHumeurContext } from '@/contexts/humeur-context';
 
 const NIVEAUX = [
   { valeur: 1, emoji: '😢' },
@@ -18,33 +12,16 @@ const NIVEAUX = [
 ];
 
 export default function HumeurScreen() {
+  const { ajouterHumeur, envoiEnCours } = useHumeurContext();
   const [humeur, setHumeur] = useState<number | null>(null);
-  const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [resultat, setResultat] = useState<'succes' | 'erreur' | null>(null);
 
   const handleValider = async () => {
     if (humeur === null) return;
 
-    setEnvoiEnCours(true);
     setResultat(null);
-
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ humeur, date: new Date() }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Réponse serveur invalide');
-      }
-
-      setResultat('succes');
-    } catch (error) {
-      setResultat('erreur');
-    } finally {
-      setEnvoiEnCours(false);
-    }
+    const succes = await ajouterHumeur(humeur);
+    setResultat(succes ? 'succes' : 'erreur');
   };
 
   return (
