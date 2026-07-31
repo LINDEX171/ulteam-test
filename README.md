@@ -1,4 +1,4 @@
-# Suivi d'humeur — Test technique ULTEAM
+# Suivi d'humeur - Test technique ULTEAM
 
 Application React Native (Expo) de suivi d'humeur quotidien : un écran de saisie pour enregistrer son humeur du jour, et un écran d'historique pour consulter les entrées passées.
 
@@ -10,9 +10,17 @@ https://github.com/user-attachments/assets/088b9de6-8e18-4329-9ece-f259c9514e49
 
 ### Captures d'écran
 
-| Écran de saisie | Historique |
+| Écran de saisie (par défaut) | Sélection d'un niveau |
 |---|---|
-| ![Écran de saisie d'humeur, avec le niveau "Terrible" sélectionné et le message de confirmation "Humeur enregistrée !"](assets/screenshots/ulteam4.jpg) | ![Écran historique avec le résumé (9 entrées, moyenne 2.3/5) et la liste triée de la plus récente à la plus ancienne](assets/screenshots/ulteam5.jpg) |
+| ![Écran de saisie d'humeur, aucun niveau sélectionné, bouton Valider désactivé](assets/screenshots/ulteam2.jpg) | ![Écran de saisie d'humeur avec le niveau "Terrible" sélectionné (bordure rouge), bouton Valider activé](assets/screenshots/ulteam3.jpg) |
+
+| Après validation | Historique |
+|---|---|
+| ![Écran de saisie d'humeur avec le message de confirmation "Humeur enregistrée !"](assets/screenshots/ulteam4.jpg) | ![Écran historique avec le résumé (9 entrées, moyenne 2.3/5) et la liste triée de la plus récente à la plus ancienne](assets/screenshots/ulteam5.jpg) |
+
+L'icône ULTEAM personnalisée apparaît aussi dans la liste "Recently opened" d'Expo Go :
+
+![Icône ULTEAM affichée dans la liste des projets récents d'Expo Go, avec le nom "Suivi d'humeur"](assets/screenshots/ulteam1.jpg)
 
 ## Fonctionnalités
 
@@ -40,7 +48,7 @@ https://github.com/user-attachments/assets/088b9de6-8e18-4329-9ece-f259c9514e49
 
 ### Gestion d'état
 
-- **`useState` local** pour l'état propre à un écran et éphémère (le niveau d'humeur sélectionné avant validation, les valeurs d'animation) — pas besoin de le partager ailleurs.
+- **`useState` local** pour l'état propre à un écran et éphémère (le niveau d'humeur sélectionné avant validation, les valeurs d'animation), pas besoin de le partager ailleurs.
 - **Context API** (`contexts/humeur-context.tsx`) pour l'état partagé entre les deux écrans (liste des humeurs, chargement, erreur). J'ai délibérément **évité une librairie externe** (Redux, Zustand, Jotai...) : pour 2 écrans et un seul "domaine" de données, un Context + quelques `useState`/`useCallback` suffit très largement. Ajouter Redux ici aurait été de la sur-ingénierie (plus de boilerplate, une dépendance en plus, pour un gain nul à cette échelle).
 - Le Context ne fait pas qu'exposer un state : il **encapsule aussi la logique métier** (`chargerHumeurs`, `ajouterHumeur`, tri, synchronisation AsyncStorage), pour que les composants d'écran restent uniquement responsables de l'affichage.
 
@@ -52,15 +60,15 @@ https://github.com/user-attachments/assets/088b9de6-8e18-4329-9ece-f259c9514e49
 
 ### Persistance locale
 
-- **AsyncStorage** plutôt que SQLite/Realm/WatermelonDB : le volume de données (une liste d'humeurs quotidiennes) est petit, une simple paire clé-valeur JSON suffit — une vraie base de données locale aurait été disproportionnée.
-- Stratégie : à chaque chargement/ajout réussi, la liste est **sauvegardée en local** ; si le `fetch` échoue (pas de réseau), on **retombe sur cette copie locale** au lieu d'afficher directement une erreur — l'historique reste consultable hors ligne.
+- **AsyncStorage** plutôt que SQLite/Realm/WatermelonDB : le volume de données (une liste d'humeurs quotidiennes) est petit, une simple paire clé-valeur JSON suffit une vraie base de données locale aurait été disproportionnée.
+- Stratégie : à chaque chargement/ajout réussi, la liste est **sauvegardée en local** ; si le `fetch` échoue (pas de réseau), on **retombe sur cette copie locale** au lieu d'afficher directement une erreur l'historique reste consultable hors ligne.
 
 ### Interface & UI
 
 - **Composants React Native natifs** (`View`, `Text`, `TouchableOpacity`, `ActivityIndicator`, `FlatList`) plutôt que des wrappers "thémés" custom fournis par le template de départ : le cahier des charges nomme explicitement ces composants, donc je suis resté au plus près de la demande plutôt que d'ajouter une couche d'abstraction.
 - **Thème clair/sombre** géré via `useColorScheme` + un objet `Colors` centralisé (`constants/theme.ts`) : un seul endroit à modifier pour ajuster la palette, cohérence garantie entre les écrans.
 - **`constants/humeurs.ts`** comme source unique de vérité pour les 5 niveaux (emoji, label, couleur) : évite de dupliquer ces informations entre l'écran de saisie et l'écran historique.
-- **react-native-reanimated** pour les animations de liste (apparition en fondu, repositionnement fluide) : déjà présent dans les dépendances du template Expo (aucune dépendance ajoutée), et ses animations tournent sur le thread natif. Pour les animations plus simples et isolées (rebond d'un bouton, fondu d'un message), j'ai utilisé l'API `Animated` de React Native de base — suffisante pour ce cas.
+- **react-native-reanimated** pour les animations de liste (apparition en fondu, repositionnement fluide) : déjà présent dans les dépendances du template Expo (aucune dépendance ajoutée), et ses animations tournent sur le thread natif. Pour les animations plus simples et isolées (rebond d'un bouton, fondu d'un message), j'ai utilisé l'API `Animated` de React Native de base suffisante pour ce cas.
 - **react-native-svg** pour afficher le logo ULTEAM (format vectoriel fourni) directement en JS via `SvgXml`, plutôt que de le convertir en PNG et perdre la netteté selon la résolution d'écran.
 
 ### Tests (Jest)
@@ -73,7 +81,7 @@ https://github.com/user-attachments/assets/088b9de6-8e18-4329-9ece-f259c9514e49
 
 ### Pipeline CI (GitHub Actions)
 
-- Déclenché à **chaque push** (toutes branches) et à **chaque Pull Request vers `main`**, pour détecter les problèmes le plus tôt possible — avant même une éventuelle review.
+- Déclenché à **chaque push** (toutes branches) et à **chaque Pull Request vers `main`**, pour détecter les problèmes le plus tôt possible avant même une éventuelle review.
 - **`npm ci`** plutôt que `npm install` : installe exactement les versions verrouillées dans `package-lock.json`, pour un environnement de build reproductible, identique à ce que j'ai testé en local.
 - Le pipeline enchaîne trois étapes dans un ordre réfléchi : **lint → vérification TypeScript → tests**, de la vérification la plus rapide à la plus longue, pour échouer vite sur un problème simple sans attendre l'exécution complète des tests.
 - Le pipeline sert aussi de **garde-fou sur les Pull Requests** : avant chaque merge vers `main`, GitHub affiche directement si le code respecte le lint, compile sans erreur de type, et passe tous les tests.
@@ -92,7 +100,7 @@ npx expo start
 
 Scanne le QR code affiché dans le terminal avec Expo Go (ou l'appareil photo sur iPhone) pour ouvrir l'application.
 
-L'API mockapi.io est déjà configurée dans `constants/api.ts` — aucune configuration supplémentaire n'est nécessaire pour tester l'application.
+L'API mockapi.io est déjà configurée dans `constants/api.ts`  aucune configuration supplémentaire n'est nécessaire pour tester l'application.
 
 ## Tests
 
@@ -100,7 +108,7 @@ L'API mockapi.io est déjà configurée dans `constants/api.ts` — aucune confi
 npm test
 ```
 
-Lance les tests unitaires (fonctions utilitaires) et d'intégration (Context, avec un `fetch` simulé — aucun besoin de réseau ni de téléphone).
+Lance les tests unitaires (fonctions utilitaires) et d'intégration (Context, avec un `fetch` simulé  aucun besoin de réseau ni de téléphone).
 
 ![Résultat de `npm test` dans le terminal : 3 suites et 9 tests passés](assets/screenshots/test-ulteam.jpg)
 
@@ -132,7 +140,7 @@ utils/date.ts                Formatage des dates ("Aujourd'hui à...", "Hier à.
 
 ## Limitation connue
 
-L'icône de l'app et l'écran de démarrage (splash screen) personnalisés ne s'affichent pas dans **Expo Go** — c'est une limitation connue d'Expo Go depuis le SDK 52 (Expo Go ne peut pas appliquer la configuration native custom d'un projet). La configuration est correcte et s'appliquera normalement lors d'un vrai build (`expo prebuild` + `expo run:ios`, ou build EAS).
+L'icône de l'app et l'écran de démarrage (splash screen) personnalisés ne s'affichent pas dans **Expo Go**  c'est une limitation connue d'Expo Go depuis le SDK 52 (Expo Go ne peut pas appliquer la configuration native custom d'un projet). La configuration est correcte et s'appliquera normalement lors d'un vrai build (`expo prebuild` + `expo run:ios`, ou build EAS).
 
 ## Ce que j'aurais fait avec plus de temps
 
