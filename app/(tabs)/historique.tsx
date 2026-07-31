@@ -1,20 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { API_URL } from '@/constants/api';
-
-interface Humeur {
-  id: string;
-  humeur: number;
-  date: string;
-}
+import { useHumeurContext } from '@/contexts/humeur-context';
 
 const EMOJIS: Record<number, string> = {
   1: '😢',
@@ -25,31 +11,7 @@ const EMOJIS: Record<number, string> = {
 };
 
 export default function HistoriqueScreen() {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<Humeur[]>([]);
-  const [error, setError] = useState(false);
-
-  const chargerHistorique = useCallback(async () => {
-    setLoading(true);
-    setError(false);
-
-    try {
-      const response = await fetch(API_URL);
-      if (!response.ok) {
-        throw new Error('Réponse serveur invalide');
-      }
-      const json: Humeur[] = await response.json();
-      setData(json);
-    } catch (err) {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    chargerHistorique();
-  }, [chargerHistorique]);
+  const { humeurs, loading, error, chargerHumeurs } = useHumeurContext();
 
   if (loading) {
     return (
@@ -63,7 +25,7 @@ export default function HistoriqueScreen() {
     return (
       <View style={styles.centre}>
         <Text style={styles.messageErreur}>Impossible de charger l&apos;historique.</Text>
-        <TouchableOpacity style={styles.boutonReessayer} onPress={chargerHistorique}>
+        <TouchableOpacity style={styles.boutonReessayer} onPress={chargerHumeurs}>
           <Text style={styles.texteReessayer}>Réessayer</Text>
         </TouchableOpacity>
       </View>
@@ -74,7 +36,7 @@ export default function HistoriqueScreen() {
     <View style={styles.container}>
       <Text style={styles.titre}>Historique</Text>
       <FlatList
-        data={data}
+        data={humeurs}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.liste}
         ListEmptyComponent={
