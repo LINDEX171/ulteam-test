@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -39,6 +40,16 @@ export function HumeurProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
+  // Toujours à jour de façon synchrone (contrairement à `humeurs`, qui ne l'est
+  // qu'après le prochain rendu) : évite de construire une nouvelle liste à partir
+  // d'une valeur obsolète si `ajouterHumeur` est appelé plusieurs fois de suite.
+  const humeursRef = useRef<Humeur[]>([]);
+
+  const definirHumeurs = useCallback((liste: Humeur[]) => {
+    humeursRef.current = liste;
+    setHumeurs(liste);
+  }, []);
+
   const chargerHumeurs = useCallback(async () => {
     setLoading(true);
     setError(false);
@@ -50,21 +61,27 @@ export function HumeurProvider({ children }: { children: ReactNode }) {
       }
       const json: Humeur[] = await response.json();
       const triees = trierParDateDesc(json);
-      setHumeurs(triees);
+      definirHumeurs(triees);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(triees));
     } catch {
       // Pas de réseau ou serveur injoignable : on retombe sur la dernière
       // copie locale sauvegardée, pour que l'historique reste consultable hors ligne.
-      const local = await AsyncStorage.getItem(STORAGE_KEY);
-      if (local) {
-        setHumeurs(trierParDateDesc(JSON.parse(local)));
-      } else {
+      try {
+        const local = await AsyncStorage.getItem(STORAGE_KEY);
+        if (local) {
+          definirHumeurs(trierParDateDesc(JSON.parse(local)));
+        } else {
+          setError(true);
+        }
+      } catch {
+        // Cache local corrompu ou dans un format inattendu : on ne peut pas
+        // s'y fier, on retombe sur l'état d'erreur classique.
         setError(true);
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [definirHumeurs]);
 
   const ajouterHumeur = useCallback(async (valeur: number) => {
     setEnvoiEnCours(true);
@@ -81,8 +98,8 @@ export function HumeurProvider({ children }: { children: ReactNode }) {
       }
 
       const nouvelleHumeur: Humeur = await response.json();
-      const misAJour = trierParDateDesc([nouvelleHumeur, ...humeurs]);
-      setHumeurs(misAJour);
+      const misAJour = trierParDateDesc([nouvelleHumeur, ...humeursRef.current]);
+      definirHumeurs(misAJour);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(misAJour));
       return true;
     } catch {
@@ -90,7 +107,7 @@ export function HumeurProvider({ children }: { children: ReactNode }) {
     } finally {
       setEnvoiEnCours(false);
     }
-  }, [humeurs]);
+  }, [definirHumeurs]);
 
   useEffect(() => {
     chargerHumeurs();

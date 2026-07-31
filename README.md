@@ -138,9 +138,11 @@ constants/theme.ts          Couleurs (thème clair/sombre)
 utils/date.ts                Formatage des dates ("Aujourd'hui à...", "Hier à...")
 ```
 
-## Limitation connue
+## Limitations connues
 
-L'icône de l'app et l'écran de démarrage (splash screen) personnalisés ne s'affichent pas dans **Expo Go**  c'est une limitation connue d'Expo Go depuis le SDK 52 (Expo Go ne peut pas appliquer la configuration native custom d'un projet). La configuration est correcte et s'appliquera normalement lors d'un vrai build (`expo prebuild` + `expo run:ios`, ou build EAS).
+- L'icône de l'app et l'écran de démarrage (splash screen) personnalisés ne s'affichent pas dans **Expo Go** : c'est une limitation connue d'Expo Go depuis le SDK 52 (Expo Go ne peut pas appliquer la configuration native custom d'un projet). La configuration est correcte et s'appliquera normalement lors d'un vrai build (`expo prebuild` + `expo run:ios`, ou build EAS).
+- Pas d'annulation des requêtes en cours (`AbortController`) : si plusieurs actualisations sont lancées rapidement, ou si le composant qui a lancé l'appel venait à être démonté avant la réponse, la requête précédente continue en arrière-plan au lieu d'être annulée.
+- La couverture de tests pourrait être renforcée (tests de composants/écrans avec Testing Library, cas limites supplémentaires sur le Context comme un cache local corrompu ou des réponses API inattendues).
 
 ## Ce que j'aurais fait avec plus de temps
 
