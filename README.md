@@ -20,7 +20,7 @@ L'icône ULTEAM personnalisée apparaît aussi dans la liste "Recently opened" d
 
 ### Vidéo de démonstration
 
-https://github.com/user-attachments/assets/d460080a-d7d0-471a-94de-90a0604c31c9
+https://github.com/user-attachments/assets/d266dff5-bda3-432b-9645-ac5a21f36eee
 
 ## Fonctionnalités
 
