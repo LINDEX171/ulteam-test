@@ -4,10 +4,6 @@ Application React Native (Expo) de suivi d'humeur quotidien : un écran de saisi
 
 ## Aperçu
 
-### Vidéo de démonstration
-
-https://github.com/user-attachments/assets/088b9de6-8e18-4329-9ece-f259c9514e49
-
 ### Captures d'écran
 
 | Écran de saisie (par défaut) | Sélection d'un niveau |
@@ -21,6 +17,10 @@ https://github.com/user-attachments/assets/088b9de6-8e18-4329-9ece-f259c9514e49
 L'icône ULTEAM personnalisée apparaît aussi dans la liste "Recently opened" d'Expo Go :
 
 ![Icône ULTEAM affichée dans la liste des projets récents d'Expo Go, avec le nom "Suivi d'humeur"](assets/screenshots/ulteam1.jpg)
+
+### Vidéo de démonstration
+
+https://github.com/user-attachments/assets/d460080a-d7d0-471a-94de-90a0604c31c9
 
 ## Fonctionnalités
 
