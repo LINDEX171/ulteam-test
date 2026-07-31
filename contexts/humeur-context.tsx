@@ -18,6 +18,10 @@ export interface Humeur {
   date: string;
 }
 
+function trierParDateDesc(liste: Humeur[]): Humeur[] {
+  return [...liste].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
 interface HumeurContextType {
   humeurs: Humeur[];
   loading: boolean;
@@ -45,14 +49,15 @@ export function HumeurProvider({ children }: { children: ReactNode }) {
         throw new Error('Réponse serveur invalide');
       }
       const json: Humeur[] = await response.json();
-      setHumeurs(json);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(json));
-    } catch (err) {
+      const triees = trierParDateDesc(json);
+      setHumeurs(triees);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(triees));
+    } catch {
       // Pas de réseau ou serveur injoignable : on retombe sur la dernière
       // copie locale sauvegardée, pour que l'historique reste consultable hors ligne.
       const local = await AsyncStorage.getItem(STORAGE_KEY);
       if (local) {
-        setHumeurs(JSON.parse(local));
+        setHumeurs(trierParDateDesc(JSON.parse(local)));
       } else {
         setError(true);
       }
@@ -76,11 +81,11 @@ export function HumeurProvider({ children }: { children: ReactNode }) {
       }
 
       const nouvelleHumeur: Humeur = await response.json();
-      const misAJour = [nouvelleHumeur, ...humeurs];
+      const misAJour = trierParDateDesc([nouvelleHumeur, ...humeurs]);
       setHumeurs(misAJour);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(misAJour));
       return true;
-    } catch (err) {
+    } catch {
       return false;
     } finally {
       setEnvoiEnCours(false);
