@@ -66,7 +66,7 @@ https://github.com/user-attachments/assets/d266dff5-bda3-432b-9645-ac5a21f36eee
 
 ### Réseau & données
 
-- **`fetch` natif** plutôt qu'une librairie comme Axios : le cahier des charges demande explicitement `fetch`, et pour 2 appels HTTP simples (GET/POST), l'API native suffit.
+- **`fetch` natif** plutôt qu'une librairie comme Axios : J’ai choisi fetch plutôt qu’Axios, car les besoins réseau sont limités à deux appels HTTP simples. L’API native suffit ici et évite d’ajouter une dépendance supplémentaire, et pour 2 appels HTTP simples (GET/POST), l'API native suffit.
 - **mockapi.io** comme backend simulé : zéro serveur à écrire/héberger, un vrai endpoint REST pour tester le flux complet (POST → GET → affichage), conforme à la demande du test.
 - **Tri systématique côté client** (`trierParDateDesc` dans le Context) plutôt que de faire confiance à l'ordre renvoyé par l'API : mockapi.io renvoie les entrées par ordre de création, et mélanger "ordre API" et "ajout local en tête de liste" créait une incohérence (bug rencontré et corrigé pendant le développement). Trier explicitement à chaque mise à jour garantit un ordre fiable, peu importe la source des données.
 
